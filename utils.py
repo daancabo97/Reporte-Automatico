@@ -1,17 +1,17 @@
 from tabulate import tabulate
 
 def imprimir_tabla(df):
-    """Print the dataframe in tabular format."""
+    """Imprimir el marco de datos en formato tabular."""
     print(tabulate(df, headers='keys', tablefmt='grid'))
 
 def contar_casos_unicos(df):
-    """Count total unique cases."""
+    """Recuento total de casos únicos."""
     return df['ID'].nunique()
 
 def contar_casos_por_usuario(df, user):
-    """Count unique cases by user."""
+    """Recuento de casos únicos por usuario."""
     return df[df['USUARIO'].str.contains(user, case=False, na=False)]['ID'].nunique()
 
 def tabla_pivote(df, index):
-    """Generate pivot table."""
+    """Generar tabla dinámica."""
     return df.pivot_table(index=index, values='ID', aggfunc='nunique')
