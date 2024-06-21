@@ -2,22 +2,37 @@ from tabulate import tabulate
 from utils import tabla_pivote
 import pandas as pd
 from openpyxl.utils import get_column_letter
+from openpyxl.drawing.image import Image
+from openpyxl.chart import BarChart, Reference
 
 def ajustar_ancho_columnas(writer, sheet_name):
-    """Ajustar el ancho de las columnas del archivo Excel."""
+    """Ajustar el ancho de las columnas en el archivo."""
     workbook = writer.book
     worksheet = workbook[sheet_name]
     for col in worksheet.columns:
         max_length = 0
-        column = col[0].column_letter  # Obtén la letra de la columna
-        for cell in col:
+        column = col[0].column_letter  
+        for celda in col:
             try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(str(cell.value))
+                if len(str(celda.value)) > max_length:
+                    max_length = len(str(celda.value))
             except:
                 pass
-        ajustar_ancho = (max_length + 2)
-        worksheet.column_dimensions[column].width = ajustar_ancho
+        ajustar_anchura = (max_length + 2)
+        worksheet.column_dimensions[column].width = ajustar_anchura
+
+def generar_grafica_barras(worksheet, data_range, titulo, celda):
+    """Generar gráfica de barras en el archivo."""
+    chart = BarChart()
+    chart.title = titulo
+    chart.style = 10
+
+    data = Reference(worksheet, min_col=data_range['min_col'], min_row=data_range['min_row'], 
+                     max_col=data_range['max_col'], max_row=data_range['max_row'])
+    
+    chart.add_data(data, titles_from_data=True)
+    chart.shape = 4
+    worksheet.add_chart(chart, celda)
 
 def generar_reporte(df):
     """Generar e imprimir reportes."""
@@ -65,4 +80,25 @@ def generar_reporte_excel(df, ruta_salida, total_casos, casos_topaz, casos_cobis
         casos_por_ambiente.to_excel(writer, sheet_name='Casos por Ambiente')
         ajustar_ancho_columnas(writer, 'Casos por Ambiente')
 
-    print(f"Reporte exportado a: {ruta_salida}")
+        # Añadir gráfica de barras
+        workbook = writer.book
+        
+        hojas_con_graficas = {
+            'Casos por Servicio': casos_por_servicio,
+            'Casos por Persona': casos_por_persona,
+            'Casos por Componente': casos_por_componente,
+            'Casos por Ambiente': casos_por_ambiente
+        }
+
+        for nombre_hoja, data in hojas_con_graficas.items():
+            worksheet = workbook[nombre_hoja]
+            data_range = {
+                'min_col': 2,
+                'min_row': 1,
+                'max_col': 2,
+                'max_row': len(data) + 1
+            }
+            
+        generar_grafica_barras(worksheet, data_range, f'{nombre_hoja}', 'E5')
+
+    print(f"Se ha exportado el reporte en la ruta: {ruta_salida}")
