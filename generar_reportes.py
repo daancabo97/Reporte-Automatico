@@ -98,7 +98,6 @@ def generar_reporte_excel(df, ruta_salida, total_casos, casos_topaz, casos_cobis
                 'max_col': 2,
                 'max_row': len(data) + 1
             }
-            
-        generar_grafica_barras(worksheet, data_range, f'{nombre_hoja}', 'E5')
+            generar_grafica_barras(worksheet, data_range, f'{nombre_hoja}', 'E5')
 
     print(f"Se ha exportado el reporte en la ruta: {ruta_salida}")
