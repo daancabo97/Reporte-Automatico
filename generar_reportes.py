@@ -23,23 +23,24 @@ def ajustar_ancho_columnas(writer, sheet_name):
         worksheet.column_dimensions[column].width = ajustar_anchura
 
 # Generar gráficas de barras
-def generar_grafica_barras(worksheet, data_range, titulo, celda, categoria_col=None):
+def generar_grafica_barras(worksheet, data_range, categoria_range, titulo, celda):
     """Generar gráfica de barras en el archivo."""
     chart = BarChart()
     chart.title = titulo
     chart.style = 10
+    chart.y_axis.title = 'Casos'
 
-    data = Reference(worksheet, min_col=data_range['min_col'], min_row=data_range['min_row'], 
+    data = Reference(worksheet, min_col=data_range['min_col'], min_row=data_range['min_row'],
                      max_col=data_range['max_col'], max_row=data_range['max_row'])
     
-    if categoria_col:
-        cats = Reference(worksheet, min_col=categoria_col, min_row=data_range['min_row'] + 1, max_row=data_range['max_row'])
-        chart.add_data(data, titles_from_data=True)
-        chart.set_categories(cats)
-    else:
-        chart.add_data(data, titles_from_data=True)
-    
+    categories = Reference(worksheet, min_col=categoria_range['min_col'], min_row=categoria_range['min_row'],
+                           max_col=categoria_range['max_col'], max_row=categoria_range['max_row'])
+
+    chart.add_data(data, titles_from_data=True)
+    chart.set_categories(categories)
     chart.shape = 4
+    chart.width = 30  # Ajustar el ancho de la gráfica
+    chart.height = 15  # Ajustar la altura de la gráfica
     worksheet.add_chart(chart, celda)
 
 # Imprimir reporte en consola
@@ -101,7 +102,8 @@ def generar_reporte_excel(df, ruta_salida, total_casos, casos_topaz, casos_cobis
             'Casos por Servicio': casos_por_servicio,
             'Casos por Persona': casos_por_persona,
             'Casos por Componente': casos_por_componente,
-            'Casos por Ambiente': casos_por_ambiente
+            'Casos por Ambiente': casos_por_ambiente,
+            'Resumen': resumen
         }
 
         for nombre_hoja, data in hojas_con_graficas.items():
@@ -112,20 +114,32 @@ def generar_reporte_excel(df, ruta_salida, total_casos, casos_topaz, casos_cobis
                 'max_col': 2,
                 'max_row': len(data) + 1
             }
-            generar_grafica_barras(worksheet, data_range, f'{nombre_hoja}', 'E5', 1)
-             
+            categoria_range = {
+                'min_col': 1,
+                'min_row': 2,
+                'max_col': 1,
+                'max_row': len(data) + 1
+            }
+            generar_grafica_barras(worksheet, data_range, categoria_range, f'{nombre_hoja}', 'E5')
+
         # Añadir los tres casos más Demorados
         casos_mas_demorados.to_excel(writer, sheet_name='Casos Más Demorados', index=False)
         ajustar_ancho_columnas(writer, 'Casos Más Demorados')
-        
+
         # Añadir gráfica de barras para Casos Más Demorados
-        worksheet = workbook['Casos Más Demorados']
+        worksheet = writer.sheets['Casos Más Demorados']
         data_range = {
             'min_col': 10,  # Columna de 'Duracion (minutos)'
             'min_row': 1,
             'max_col': 10,
             'max_row': len(casos_mas_demorados) + 1
         }
-        generar_grafica_barras(worksheet, data_range, 'Casos Más Demorados', 'E5', 2)
+        categoria_range = {
+            'min_col': 2,  # Columna de 'ID'
+            'min_row': 2,
+            'max_col': 2,
+            'max_row': len(casos_mas_demorados) + 1
+        }
+        generar_grafica_barras(worksheet, data_range, categoria_range, 'Casos Más Demorados', 'E5')
 
     print(f"Se ha exportado el reporte en la ruta: {ruta_salida}")
