@@ -5,6 +5,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.drawing.image import Image
 from openpyxl.chart import BarChart, Reference
 
+# Ajustar el formato de las columnas
 def ajustar_ancho_columnas(writer, sheet_name):
     """Ajustar el ancho de las columnas en el archivo."""
     workbook = writer.book
@@ -21,7 +22,8 @@ def ajustar_ancho_columnas(writer, sheet_name):
         ajustar_anchura = (max_length + 2)
         worksheet.column_dimensions[column].width = ajustar_anchura
 
-def generar_grafica_barras(worksheet, data_range, titulo, celda):
+# Generar gráficas de barras
+def generar_grafica_barras(worksheet, data_range, titulo, celda, categoria_col=None):
     """Generar gráfica de barras en el archivo."""
     chart = BarChart()
     chart.title = titulo
@@ -30,10 +32,17 @@ def generar_grafica_barras(worksheet, data_range, titulo, celda):
     data = Reference(worksheet, min_col=data_range['min_col'], min_row=data_range['min_row'], 
                      max_col=data_range['max_col'], max_row=data_range['max_row'])
     
-    chart.add_data(data, titles_from_data=True)
+    if categoria_col:
+        cats = Reference(worksheet, min_col=categoria_col, min_row=data_range['min_row'] + 1, max_row=data_range['max_row'])
+        chart.add_data(data, titles_from_data=True)
+        chart.set_categories(cats)
+    else:
+        chart.add_data(data, titles_from_data=True)
+    
     chart.shape = 4
     worksheet.add_chart(chart, celda)
 
+# Imprimir reporte en consola
 def generar_reporte(df):
     """Generar e imprimir reportes."""
     casos_por_servicio = tabla_pivote(df, 'Servicio')
@@ -50,12 +59,17 @@ def generar_reporte(df):
     print("\nNúmero de casos por ambiente:")
     print(tabulate(casos_por_ambiente, headers='keys', tablefmt='grid'))
 
+# Generar reporte en Excel
 def generar_reporte_excel(df, ruta_salida, total_casos, casos_topaz, casos_cobis):
     """Generar reporte y exportar a un archivo Excel."""
     casos_por_servicio = tabla_pivote(df, 'Servicio')
     casos_por_persona = tabla_pivote(df, 'Asignado a')
     casos_por_componente = tabla_pivote(df, 'Componente')
     casos_por_ambiente = tabla_pivote(df, 'Ambiente')
+    
+    # Obtener los tres casos que más tiempo han tomado en sacar
+    df['Duracion (minutos)'] = pd.to_numeric(df['Duracion (minutos)'], errors='coerce')
+    casos_mas_demorados = df.nlargest(3, 'Duracion (minutos)')
 
     with pd.ExcelWriter(ruta_salida, engine='openpyxl') as writer:
         df.to_excel(writer, sheet_name='Datos Filtrados', index=False)
@@ -98,6 +112,20 @@ def generar_reporte_excel(df, ruta_salida, total_casos, casos_topaz, casos_cobis
                 'max_col': 2,
                 'max_row': len(data) + 1
             }
-            generar_grafica_barras(worksheet, data_range, f'{nombre_hoja}', 'E5')
+            generar_grafica_barras(worksheet, data_range, f'{nombre_hoja}', 'E5', 1)
+             
+        # Añadir los tres casos más Demorados
+        casos_mas_demorados.to_excel(writer, sheet_name='Casos Más Demorados', index=False)
+        ajustar_ancho_columnas(writer, 'Casos Más Demorados')
+        
+        # Añadir gráfica de barras para Casos Más Demorados
+        worksheet = workbook['Casos Más Demorados']
+        data_range = {
+            'min_col': 10,  # Columna de 'Duracion (minutos)'
+            'min_row': 1,
+            'max_col': 10,
+            'max_row': len(casos_mas_demorados) + 1
+        }
+        generar_grafica_barras(worksheet, data_range, 'Casos Más Demorados', 'E5', 2)
 
     print(f"Se ha exportado el reporte en la ruta: {ruta_salida}")
