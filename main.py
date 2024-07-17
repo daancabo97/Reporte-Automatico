@@ -7,7 +7,6 @@ from utils import imprimir_tabla, contar_casos_unicos, contar_casos_por_usuario
 def ejecutar_proceso(ruta_archivo, ruta_salida):
     try:
         archivo_excel = leer_archivo_excel(ruta_archivo)
-
         tabla = filtrar_columnas(archivo_excel)
         imprimir_tabla(tabla)
 
@@ -25,6 +24,8 @@ def ejecutar_proceso(ruta_archivo, ruta_salida):
         generar_reporte_excel(tabla, ruta_salida, total_casos, casos_topaz, casos_cobis)
 
         messagebox.showinfo("Éxito", f"Reporte exportado a {ruta_salida}")
+    except KeyError as e:
+        messagebox.showerror("Error", f"Columnas no encontradas: {e}")
     except Exception as e:
         messagebox.showerror("Error", str(e))
 
@@ -64,4 +65,3 @@ tk.Button(app, text="Seleccionar ruta", command=seleccionar_archivo_salida).pack
 tk.Button(app, text="Ejecutar", command=ejecutar).pack(pady=20)
 
 app.mainloop()
-
