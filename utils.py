@@ -1,8 +1,8 @@
 from tabulate import tabulate
 
 def imprimir_tabla(df):
-    """Imprimir el marco de datos en formato tabular."""
-    print(tabulate(df, headers='keys', tablefmt='grid'))
+        """Imprimir el marco de datos en formato tabular."""
+        print(tabulate(df, headers='keys', tablefmt='grid'))
 
 def contar_casos_unicos(df):
     """Recuento total de casos únicos."""
