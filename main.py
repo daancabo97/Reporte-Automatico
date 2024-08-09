@@ -14,14 +14,14 @@ def ejecutar_proceso(ruta_archivo, ruta_salida):
             total_casos = contar_casos_unicos(archivo_excel)
             print(f"Número total de casos atendidos: {total_casos}")
 
-            casos_topaz = contar_casos_por_usuario(archivo_excel, 'topaz')
+            casos_bac = contar_casos_por_usuario(archivo_excel, 'topaz')
             casos_cobis = contar_casos_por_usuario(archivo_excel, 'bac')
-            print(f"Número de casos atendidos a Topaz: {casos_topaz}")
+            print(f"Número de casos atendidos a Topaz: {casos_bac}")
             print(f"Número de casos atendidos a Cobis: {casos_cobis}")
 
 
             # Generar el reporte en un archivo Excel
-            generar_reporte_excel(tabla, ruta_salida, total_casos, casos_topaz, casos_cobis)
+            generar_reporte_excel(tabla, ruta_salida, total_casos, casos_bac, casos_cobis)
 
             messagebox.showinfo("Éxito", f"Reporte exportado a {ruta_salida}")
         except KeyError as e:

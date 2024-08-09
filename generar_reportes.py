@@ -59,7 +59,7 @@ def generar_grafica_barras(worksheet, data_range, categoria_range, titulo, celda
 
 
 # Generar reporte en Excel
-def generar_reporte_excel(df, ruta_salida, total_casos, casos_topaz, casos_cobis):
+def generar_reporte_excel(df, ruta_salida, total_casos, casos_bac, casos_cobis):
             
             # Calcular días en la columna SLA para cada caso -> ('Casos Mas Demorados')
             df['Fecha/Hora Asignación'] = pd.to_datetime(df['Fecha/Hora Asignación'], errors='coerce')
@@ -87,8 +87,8 @@ def generar_reporte_excel(df, ruta_salida, total_casos, casos_topaz, casos_cobis
                 ajustar_ancho_columnas(writer, 'Datos Filtrados')
 
                 resumen = pd.DataFrame({
-                    'Descripción': ['Total Casos Atendidos', 'Casos Topaz', 'Casos Cobis', 'Casos Cerrados antes de 3 días', 'Casos Cerrados mayor a 3 días'],
-                    'Cantidad': [total_casos, casos_topaz, casos_cobis, casos_antes_tres_dias, casos_despues_tres_dias]
+                    'Descripción': ['Total Casos Atendidos', 'Casos Bac', 'Casos Cobis', 'Casos Cerrados antes de 3 días', 'Casos Cerrados mayor a 3 días'],
+                    'Cantidad': [total_casos, casos_bac, casos_cobis, casos_antes_tres_dias, casos_despues_tres_dias]
                 })
                 resumen.to_excel(writer, sheet_name='Resumen', index=False)
                 ajustar_ancho_columnas(writer, 'Resumen')
@@ -129,10 +129,10 @@ def generar_reporte_excel(df, ruta_salida, total_casos, casos_topaz, casos_cobis
                     generar_grafica_barras(worksheet, data_range, categoria_range, f'{nombre_hoja}', 'E5')
 
                 # Añadir los 5 casos más demorados (Topaz y BAC) -> ('Casos Mas Demorados')
-                # Casos Topaz
+                # Casos Bac
                 startrow_topaz = 0
                 casos_mas_demorados_topaz.to_excel(writer, sheet_name='Casos Más Demorados', index=False, startrow=startrow_topaz)
-                # Casos bac
+                # Casos Bac
                 startrow_bac = startrow_topaz + len(casos_mas_demorados_topaz) + 2
                 casos_mas_demorados_bac.to_excel(writer, sheet_name='Casos Más Demorados', index=False, startrow=startrow_bac)
                 
