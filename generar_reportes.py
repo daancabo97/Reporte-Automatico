@@ -66,15 +66,26 @@ def generar_grafica_barras(worksheet, data_range, categoria_range, titulo, celda
 def generar_reporte_excel(df, ruta_salida, total_casos, casos_bac, casos_cobis):
             
 
-        # Calcular días en la columna SLA para cada caso -> ('Casos Mas Demorados')
+        # Filtra los casos válidos (remueve filas con datos vacíos en las columnas relevantes)
+            df = df.dropna(subset=['Fecha/Hora Asignación', 'Fecha\nCierre', 'Asignado a', 'Servicio'])
+
+
+        # Elimina los espacios en blanco adicionales y caracteres específicos (COLUMNA USUARIO) 
+            df['USUARIO'] = df['USUARIO'].str.strip().str.lower()
+
+
+        # Calcula los días en la columna SLA para cada caso -> ('Casos Mas Demorados')
             df['Fecha/Hora Asignación'] = pd.to_datetime(df['Fecha/Hora Asignación'], errors='coerce')
             df['Fecha\nCierre'] = pd.to_datetime(df['Fecha\nCierre'], errors='coerce')
             df['Dias SLA'] = df.apply(lambda row: calcular_dias_habiles(row['Fecha/Hora Asignación'], row['Fecha\nCierre']), axis=1)
 
 
-        # Obtener estadísticas de los casos según días - columna SLA -> ('Casos Mas Demorados')
-            casos_antes_tres_dias = df[df['Dias SLA'] <= 3].shape[0]
-            casos_despues_tres_dias = df[df['Dias SLA'] > 3].shape[0]
+        # Estadísticas generales
+            total_casos = df.shape[0]
+            casos_bac = df[df['USUARIO'].str.contains('bac', case=False, na=False)].shape[0]
+            casos_cobis = df[df['USUARIO'].str.contains('topaz', case=False, na=False)].shape[0]
+            casos_antes_tres_dias = df[(df['Estado'] == 'Cerrado') & (df['Dias SLA'] <= 3)].shape[0]
+            casos_despues_tres_dias = df[(df['Estado'] == 'Cerrado') & (df['Dias SLA'] > 3)].shape[0]
 
 
         # Capturar demas casos correspondientes al archivo
