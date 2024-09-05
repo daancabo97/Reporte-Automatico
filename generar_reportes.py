@@ -52,7 +52,7 @@ def generar_grafica_barras(worksheet, data_range, categoria_range, titulo, celda
                     max_col=data_range['max_col'], max_row=data_range['max_row'])
             
             categories = Reference(worksheet, min_col=categoria_range['min_col'], min_row=categoria_range['min_row'],
-                        max_row=categoria_range['max_row']) 
+                                max_col=categoria_range['max_col'], max_row=categoria_range['max_row'])
             
             chart.add_data(data, titles_from_data=True)
             chart.set_categories(categories)
