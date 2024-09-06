@@ -63,7 +63,7 @@ def generar_grafica_barras(worksheet, data_range, categoria_range, titulo, celda
 
 
 # Generar reporte en Excel
-def generar_reporte_excel(df, ruta_salida, total_casos, casos_bac, casos_cobis):
+def generar_reporte_excel(df, ruta_salida, total_casos, casos_bac, casos_cobis, casos_infra):
             
 
         # Filtra los casos válidos (remueve filas con datos vacíos en las columnas relevantes)
@@ -84,6 +84,7 @@ def generar_reporte_excel(df, ruta_salida, total_casos, casos_bac, casos_cobis):
             total_casos = df.shape[0]
             casos_bac = df[df['USUARIO'].str.contains('bac', case=False, na=False)].shape[0]
             casos_cobis = df[df['USUARIO'].str.contains('topaz', case=False, na=False)].shape[0]
+            casos_infra = df[df['USUARIO'].str.contains('infra', case=False, na=False)].shape[0]
             casos_antes_tres_dias = df[(df['Estado'] == 'Cerrado') & (df['Dias SLA'] <= 3)].shape[0]
             casos_despues_tres_dias = df[(df['Estado'] == 'Cerrado') & (df['Dias SLA'] > 3)].shape[0]
 
@@ -113,8 +114,8 @@ def generar_reporte_excel(df, ruta_salida, total_casos, casos_bac, casos_cobis):
                 ajustar_ancho_columnas(writer, 'Datos Filtrados')
 
                 resumen = pd.DataFrame({
-                    'Descripción': ['Total Casos Atendidos', 'Casos BAC', 'Casos Cobis', 'Casos Cerrados antes de 3 días', 'Casos Cerrados mayor a 3 días'],
-                    'Cantidad': [total_casos, casos_bac, casos_cobis, casos_antes_tres_dias, casos_despues_tres_dias]
+                    'Descripción': ['Total Casos Atendidos', 'Casos BAC', 'Casos Cobis', 'Casos INFRA', 'Casos Cerrados antes de 3 días', 'Casos Cerrados mayor a 3 días'],
+                    'Cantidad': [total_casos, casos_bac, casos_cobis, casos_infra, casos_antes_tres_dias, casos_despues_tres_dias]
                 })
                 resumen.to_excel(writer, sheet_name='Resumen', index=False)
                 ajustar_ancho_columnas(writer, 'Resumen')
@@ -126,18 +127,20 @@ def generar_reporte_excel(df, ruta_salida, total_casos, casos_bac, casos_cobis):
                 ajustar_ancho_columnas(writer, 'Casos por Componente')
                 casos_por_ambiente.to_excel(writer, sheet_name='Casos por Ambiente')
                 ajustar_ancho_columnas(writer, 'Casos por Ambiente')
+                
 
-
+                print(df[df['USUARIO'].str.contains('infra', case=False, na=False)])
 
             # Añadir gráfica de barras por seccion en el archivo excel
                 workbook = writer.book
 
                 hojas_con_graficas = {
+                    'Resumen': resumen,
                     'Casos por Servicio': casos_por_servicio,
                     'Casos por Persona': casos_por_persona,
                     'Casos por Componente': casos_por_componente,
-                    'Casos por Ambiente': casos_por_ambiente,
-                    'Resumen': resumen
+                    'Casos por Ambiente': casos_por_ambiente
+                    
                 }
 
                 for nombre_hoja, data in hojas_con_graficas.items():
@@ -164,7 +167,7 @@ def generar_reporte_excel(df, ruta_salida, total_casos, casos_bac, casos_cobis):
 
             # Añadir los 5 casos más demorados (Topaz y BAC) -> ('Casos Mas Demorados')
 
-            # Casos BAC
+            # Casos Topaz(Cobis)
                 startrow_topaz = 0
                 casos_mas_demorados_topaz.to_excel(writer, sheet_name='Casos Más Demorados', index=False, startrow=startrow_topaz)
              # Casos BAC
