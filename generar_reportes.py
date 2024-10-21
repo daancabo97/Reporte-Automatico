@@ -62,6 +62,51 @@ def generar_grafica_barras(worksheet, data_range, categoria_range, titulo, celda
             worksheet.add_chart(chart, celda)
 
 
+
+# Función para extraer y procesar los datos de la pestaña de Acompañamientos
+def procesar_acompanamientos(df_acompanamientos, writer):
+    # Verificar si el DataFrame no está vacío
+    if df_acompanamientos.empty:
+        print("No se encontraron registros de acompañamientos.")
+        return
+
+    # Agrupar por la columna 'Asignado a' y contar los registros
+    conteo_acompanamientos = df_acompanamientos.groupby('Asignado a').size().reset_index(name='Cantidad')
+
+    # Añadir una fila que sume todos los acompañamientos
+    total_acompanamientos = conteo_acompanamientos['Cantidad'].sum()
+    conteo_acompanamientos.loc[len(conteo_acompanamientos)] = ['Total Acompañamiento', total_acompanamientos]
+
+    # Escribir los datos de acompañamientos en una nueva hoja de Excel
+    conteo_acompanamientos.to_excel(writer, sheet_name='Acompañamientos', index=False)
+
+    # Ajustar el ancho de las columnas
+    ajustar_ancho_columnas(writer, 'Acompañamientos')
+
+    # Crear un gráfico de barras en la pestaña 'Acompañamientos'
+    workbook = writer.book
+    worksheet = workbook['Acompañamientos']
+
+    data_range = {
+        'min_col': 2,
+        'min_row': 1,
+        'max_col': 2,
+        'max_row': len(conteo_acompanamientos) + 1
+    }
+    categoria_range = {
+        'min_col': 1,
+        'min_row': 2,
+        'max_col': 1,
+        'max_row': len(conteo_acompanamientos) + 1
+    }
+    generar_grafica_barras(worksheet, data_range, categoria_range, 'Acompañamientos', 'E6')
+
+
+
+
+
+
+
 # Generar reporte en Excel
 def generar_reporte_excel(df, ruta_salida, total_casos, casos_bac, casos_cobis, casos_infra):
             
@@ -110,6 +155,7 @@ def generar_reporte_excel(df, ruta_salida, total_casos, casos_bac, casos_cobis, 
             casos_mas_demorados_bac = df[df['USUARIO'].str.contains('bac', case=False, na=False)].nlargest(5, 'Duracion (minutos)')
 
             with pd.ExcelWriter(ruta_salida, engine='openpyxl') as writer:
+                procesar_acompanamientos(df, writer)
                 df.to_excel(writer, sheet_name='Datos Filtrados', index=False)
                 ajustar_ancho_columnas(writer, 'Datos Filtrados')
 
@@ -127,6 +173,7 @@ def generar_reporte_excel(df, ruta_salida, total_casos, casos_bac, casos_cobis, 
                 ajustar_ancho_columnas(writer, 'Casos por Componente')
                 casos_por_ambiente.to_excel(writer, sheet_name='Casos por Ambiente')
                 ajustar_ancho_columnas(writer, 'Casos por Ambiente')
+                
                 
 
                 print(df[df['USUARIO'].str.contains('infra', case=False, na=False)])
